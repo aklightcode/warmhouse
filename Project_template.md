@@ -1,28 +1,20 @@
 # Project_template
 
-Это шаблон для решения проектной работы. Структура этого файла повторяет структуру заданий. Заполняйте его по мере работы над решением.
-
 # Задание 1. Анализ и планирование
-
-<aside>
-
-Чтобы составить документ с описанием текущей архитектуры приложения, можно часть информации взять из описания компании и условия задания. Это нормально.
-
-</aside
 
 ### 1. Описание функциональности монолитного приложения
 
 **Управление отоплением:**
 
 - Пользователи могут удалённо включать/выключать отопление в своих домах.
-- Система поддерживает удаленное включение 
-- …
+- Система поддерживает удаленное включение/выключение отопления в домах, которые подключены к системе
+- 
 
 **Мониторинг температуры:**
 
 - Пользователи могут просматривать текущую температуру в своих домах через веб-интерфейс.
 - Система поддерживает получение данных о температуре с датчиков, установленных в домах.
-- …
+
 
 ### 2. Анализ архитектуры монолитного приложения
 
@@ -31,35 +23,30 @@
 - Используемая БД: PostrgreSQL.
 - Взаимодействие между компонентами происходит синхронно (запросы обрабатываются последовательно)
 
-Перечислите здесь основные особенности текущего приложения: какой язык программирования используется, какая база данных, как организовано взаимодействие между компонентами и так далее.
-
 ### 3. Определение доменов и границы контекстов
 
 Домены: управление устройствами отопления, мониторинг температуры
 
-Опишите здесь домены, которые вы выделили.
+Управление системой отопления:
+- подключение/отключение датчиков
+- включение/выключение приборов отопления
+
+Мониторинг температуры:
+- получение данных датчиков отопления
+- управление состоянием датчиков (например сброс показателей и тд.)
 
 ### **4. Проблемы монолитного решения**
 
 - Ограниченная масштабируемость. Монолит сложно масштабировать по частям
-- Для развертывания необходима остановка всего приложения
-
-Если вы считаете, что текущее решение не вызывает проблем, аргументируйте свою позицию.
+- Для развертывания необходима остановка всего приложения. Долгие pipelines в случае CI/CD
+- Сильная связность функционала. При добавлении функционала новых доменов разработка будет усложняться, так как изменения в одном домене могут влиять на изменения в другом. 
+- Относительно низкая надежность. Из-за сильной связности модулей отказ в одном модуле может привести к отказу всего приложения.
+- Ограниченность в выборе технологий. Возможно для реализации функционала разных доменов целесообразнее использовать разные технологии. Монолит либо исключет такую возможность, либо ее ограничивает.
 
 ### 5. Визуализация контекста системы — диаграмма С4
 
-Добавьте сюда диаграмму контекста в модели C4.
-
-Чтобы добавить ссылку в файл Readme.md, нужно использовать синтаксис Markdown. Это делают так:
-
 ```markdown
-[Текст ссылки](URL)
-```
-
-Замените `Текст ссылки` текстом, который хотите использовать для ссылки. Вместо `URL` вставьте адрес, на который должна вести ссылка. Например:
-
-```markdown
-[Диаграмма контекста](https://img.plantuml.biz/plantuml/png/bLJ1ZX914BsJy0yj9qnmkNZoj0bwKxDPOpnkPg6pJ38pFMcQkDwGITniri35WpUZ_i1ab3WBBFn2zH_vgXlO1T6i5wQxkkgzLw-wEUoPG9j-75Kh9ZIH56y27NTLloT5IoL6dXlnD0pET11NAqXHgJ1Ad2fZL2mwePPj4wg4Znw4IJlgTsHVHw9hJDfxqcpguEt1MMYw_LFWwJRZ9UQWhUBcSTWET4Uz36KgesRhyQEZA4ZCwnVFct7GCr8ZTD9ISQeIhaYTlchbIEgUIkeCrX0r-a8BcjcFz0lVWd8xf0dlQ_yuQmWgxNjQhazjPaVsaagw5lGDAKk4htZp4ndpsiCDPz29muI1lo9dOZ-W9ASPWzcXe2bduo2d6noKjRycWjZz07yAgf6z02bgx4X0baj2O6wl12smNB2WLSPOKB7IHHDG2fSwHGUN-49o0Re1er2v0yPzl7e7N-FwPhn-3w6t0_UXbVXDEUNCEWE_pMXf1sYdk2CA_4X4U47NhWHkewZSsm2YSyHuXpCKbLZ_0CEAYXqRyBI0El2wryfFdfsRkjF9-ZwvyMnM3JS2Z-ddj-rn3jmXr8sTRtUyWPDxkzeLpxbUpR6CLXVmJolfy_RTOjRjKMJtfzld5iFjSofZRQpCNrDlaty4EoRiojatfNjPj6RSTM7D_Vssn8uzyt_U56zajb6ELlXztM304xS1s0MyuiTN-E5KAuSowU3VuZS0)
+[Диаграмма контекста](https://img.plantuml.biz/plantuml/dpng/bLJ1ZX914BsJy0yj9qnmkNZoj0bwKxDPOpnkPg6pJ38pFMcQkDwGITniri35WpUZ_i1ab3WBBFn2zH_vgXlO1T6i5wQxkkgzLw-wEUoPG9j-75Kh9ZIH56y27NTLloT5IoL6dXlnD0pET11NAqXHgJ1Ad2fZL2mwePPj4wg4Znw4IJlgTsHVHw9hJDfxqcpguEt1MMYw_LFWwJRZ9UQWhUBcSTWET4Uz36KgesRhyQEZA4ZCwnVFct7GCr8ZTD9ISQeIhaYTlchbIEgUIkeCrX0r-a8BcjcFz0lVWd8xf0dlQ_yuQmWgxNjQhazjPaVsaagw5lGDAKk4htZp4ndpsiCDPz29muI1lo9dOZ-W9ASPWzcXe2bduo2d6noKjRycWjZz07yAgf6z02bgx4X0baj2O6wl12smNB2WLSPOKB7IHHDG2fSwHGUN-49o0Re1er2v0yPzl7e7N-FwPhn-3w6t0_UXbVXDEUNCEWE_pMXf1sYdk2CA_4X4U47NhWHkewZSsm2YSyHuXpCKbLZ_0CEAYXqRyBI0El2wryfFdfsRkjF9-ZwvyMnM3JS2Z-ddj-rn3jmXr8sTRtUyWPDxkzeLpxbUpR6CLXVmJolfy_RTOjRjKMJtfzld5iFjSofZRQpCNrDlaty4EoRiojatfNjPj6RSTM7D_Vssn8uzyt_U56zajb6ELlXztM304xS1s0MyuiTN-E5KAuSowU3VuZS0)
 ```
 
 # Задание 2. Проектирование микросервисной архитектуры
