@@ -1,0 +1,41 @@
+@startuml "messagebus"
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+' uncomment the following line and comment the first to use locally
+' !include C4_Container.puml
+
+AddElementTag("microService", $shape=EightSidedShape(), $bgColor="CornflowerBlue", $fontColor="white", $legendText="micro service\neight sided")
+AddElementTag("storage", $shape=RoundedBoxShape(), $bgColor="lightSkyBlue", $fontColor="white")
+
+SHOW_PERSON_OUTLINE()
+
+Person(user, Пользователь, "Пользователь, использующий систему Smart home")
+
+System_Boundary(c1, "Smart Home Service ") {
+    Container(app, "Web Application", "Javascript, React", "UI Web приложения, через которое пользователь управляет устройствами")
+    Container(api, "Api Gateway", , "Оркестратор для распределения запросов по доменам")
+    Container(auth_service, "Auth Service", "Go", "Сервис аутентификации и авторизации пользователя", $tags = "microService")
+    Container(heating_service, "Heating Service", "Go", "Сервис управления устройствами и датчиками отопления", $tags = "microService")
+    Container(lighting_service, "Lighting Service", "Go", "Сервис управления осветительными приборами", $tags = "microService")
+    Container(gate_service, "Gate Service", "Go", "Сервис управления воротами", $tags = "microService")
+    Container(surveillance_service, "Surveillance Service", "Go", "Сервис видеонаблюдения", $tags = "microService")
+    Container(telemetry_service, "Telemetry Service", "Go", "Сервис телеметрии", $tags = "microService")
+    ContainerDb(common_db, "Common Database", "PostgreSQL", "Хранит данные сервисов (данные пользователя, дома, состояния устройств, телеметрию)", $tags = "storage")
+}
+
+Rel_D(user, app, "Отправляет запрос на управление устройством", "HTTPS")
+Rel_D(app, api, "Производит API вызов", "JSON/HTTPS")
+Rel_D(api, auth_service, "Вызывает сервис авторизации/аутентфикации", "JSON/HTTPS")
+Rel_D(api, heating_service, "Вызывает сервис управления отоплением", "JSON/HTTPS")
+Rel_D(api, lighting_service, "Вызывает сервис управления освещением", "JSON/HTTPS")
+Rel_D(api, gate_service, "Вызывает сервис управления воротами", "JSON/HTTPS")
+Rel_D(api, surveillance_service, "Вызывает сервис видеонаблюдения", "JSON/HTTPS")
+Rel_D(api, telemetry_service, "Вызывает сервис телеметрии", "JSON/HTTPS")
+
+Rel(auth_service, common_db, "Запрашивает/Сохраняет данные в БД", "SQL")
+Rel(heating_service, common_db, "Запрашивает/Сохраняет данные в БД", "SQL")
+Rel(lighting_service, common_db, "Запрашивает/Сохраняет данные в БД", "SQL")
+Rel(gate_service, common_db, "Запрашивает/Сохраняет данные в БД", "SQL")
+Rel(surveillance_service, common_db, "Запрашивает/Сохраняет данные в БД", "SQL")
+Rel(telemetry_service, common_db, "Запрашивает/Сохраняет данные в БД", "SQL")
+
+@enduml
