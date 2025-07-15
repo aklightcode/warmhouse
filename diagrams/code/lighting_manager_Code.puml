@@ -1,0 +1,69 @@
+@startuml
+title Диаграмма кода для компонента Lighting Manager
+
+class LightingManager {
+  +lightService: LightService
+  +repository: LightingRepository
+  +configureLighting(houseId: string, config: LightingConfig): void
+  +toggleLight(lightId: string, state: bool): void
+  +getLightStatus(lightId: string): LightStatus
+}
+
+class LightService {
+  +validator: LightingValidator
+  +scheduler: LightingScheduler
+  +applyLightingRules(houseId: string): void
+}
+
+
+class LightingScheduler {
+  +scheduleTurnOn(lightId: string, time: DateTime): void
+  +scheduleTurnOff(lightId: string, time: DateTime): void
+  +cancelSchedule(lightId: string): void
+}
+
+class LightingRepository {
+  +saveLightState(lightId: string, state: bool): void
+  +getLightState(lightId: string): bool
+  +getHouseLights(houseId: string): List<LightDevice>
+}
+
+' Модели данных
+class LightDevice {
+  +id: string
+  +houseId: string
+  +name: string
+  +currentState: bool
+  +brightness: int
+}
+
+class LightStatus {
+  +lightId: string
+  +isOn: bool
+  +lastUpdated: DateTime
+}
+
+' Основные связи
+LightingManager --> LightService : использует
+LightingManager --> LightingRepository : использует
+
+LightService --> LightingScheduler : использует
+LightService --> LightDevice : работает с
+LightService --> LightStatus : возвращает
+
+LightingRepository --> LightDevice : сохраняет
+LightingRepository --> CommonDB : доступ к БД
+
+note top of LightingManager
+  Основной класс-координатор:
+  - Принимает запросы от API
+  - Управляет сервисом освещения
+  - Работает с репозиторием
+end note
+
+note right of LightingRepository
+  Прямой доступ к БД:
+  - Сохраняет состояния устройств
+  - Загружает конфигурации
+end note
+@enduml
