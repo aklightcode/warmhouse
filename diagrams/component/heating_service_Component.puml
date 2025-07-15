@@ -1,0 +1,20 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+' uncomment the following line and comment the first to use locally
+' !include C4_Component.puml
+
+title Компонентная диаграмма для "Heating Service"
+Container(api, "Api Gateway", "Оркестратор для распределения запросов по доменам")
+ContainerDb(common_db, "Common Database", "PostgreSQL", "Хранит данные сервисов (данные пользователя, дома, состояния устройств, телеметрию)", $tags = "storage")
+
+Container_Boundary(heating, "Heating Service") {
+    Component(heating_controller, "Heating API Controller", "Предоставляет REST API для управления приборами отопления")
+    Component(heating_management, "Heating Manager", "Управляет устройствами отопления в доме")
+    Component(heating_repository, "Heating Repository", "Слой взаимодействия с БД")
+    Rel(heating_controller, heating_management, "Использует")
+    Rel(heating_management, heating_repository, "Использует")
+}
+
+Rel(api, heating_controller, "Использует", "JSON/HTTPS")
+Rel(heating_repository, common_db, "Читает из/ записывает в [SQL]")
+@enduml

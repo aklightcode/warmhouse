@@ -1,0 +1,33 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+' uncomment the following line and comment the first to use locally
+' !include C4_Component.puml
+
+title Компонентная диаграмма для API Gateway
+Container(app, "Web Application", "Javascript, React", "UI Web приложения, через которое пользователь управляет устройствами")
+Container(auth_service, "Auth Service", "Go", "Сервис аутентификации и авторизации пользователя", $tags = "microService")
+Container(heating_service, "Heating Service", "Go", "Сервис управления устройствами и датчиками отопления", $tags = "microService")
+Container(lighting_service, "Lighting Service", "Go", "Сервис управления осветительными приборами", $tags = "microService")
+Container(gate_service, "Gate Service", "Go", "Сервис управления воротами", $tags = "microService")
+Container(surveillance_service, "Surveillance Service", "Go", "Сервис видеонаблюдения", $tags = "microService")
+Container(telemetry_service, "Telemetry Service", "Go", "Сервис телеметрии", $tags = "microService")
+
+Container_Boundary(api, "API Gateway") {
+    Component(router, "API router", "Распределяет запросы по соответствующим сервисам")
+    Component(validator, "Request Validator", "Валидирует структуру входящего запроса")
+    Component(logger, "Request Logger", "Логгирует входящие запросы")
+    Rel(router, logger, "Логгирует запросы")
+    Rel(router, validator, "Валидирует запросы")
+
+}
+
+Rel(router, auth_service, "Направляет запросы к [HTTPS/JSON]")
+Rel(router, heating_service, "Направляет запросы к [HTTPS/JSON]")
+Rel(router, lighting_service, "Направляет запросы к [HTTPS/JSON]")
+Rel(router, gate_service, "Направляет запросы к [HTTPS/JSON]")
+Rel(router, surveillance_service, "Направляет запросы к [HTTPS/JSON]")
+Rel(router, telemetry_service, "Направляет запросы к [HTTPS/JSON]")
+
+Rel(app, router, "Uses", "JSON/HTTPS")
+
+@enduml

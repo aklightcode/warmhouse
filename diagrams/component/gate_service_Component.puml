@@ -1,0 +1,20 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+' uncomment the following line and comment the first to use locally
+' !include C4_Component.puml
+
+title Компонентная диаграмма для "Gate Service"
+Container(api, "Api Gateway", "Оркестратор для распределения запросов по доменам")
+ContainerDb(common_db, "Common Database", "PostgreSQL", "Хранит данные сервисов (данные пользователя, дома, состояния устройств, телеметрию)", $tags = "storage")
+
+Container_Boundary(gate, "Gate Service") {
+    Component(gate_controller, "Gate API Controller", "Предоставляет REST API для управления воротами")
+    Component(gate_management, "Gate Manager", "Управляет воротами")
+    Component(gate_repository, "Gate Repository", "Слой взаимодействия с БД")
+    Rel(gate_controller, gate_management, "Использует")
+    Rel(gate_management, gate_repository, "Использует")
+}
+
+Rel(api, gate_controller, "Использует", "JSON/HTTPS")
+Rel(gate_repository, common_db, "Читает из/ записывает в [SQL]")
+@enduml

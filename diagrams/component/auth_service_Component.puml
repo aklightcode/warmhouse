@@ -1,0 +1,23 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+' uncomment the following line and comment the first to use locally
+' !include C4_Component.puml
+
+title Компонентная диаграмма для "Auth Service"
+Container(api, "Api Gateway", "Оркестратор для распределения запросов по доменам")
+ContainerDb(common_db, "Common Database", "PostgreSQL", "Хранит данные сервисов (данные пользователя, дома, состояния устройств, телеметрию)", $tags = "storage")
+
+Container_Boundary(auth, "Auth Service") {
+    Component(auth_controller, "Auth API Controller", "Предоставляет REST API для регистрации/авторизации/аутентификации пользователя")
+    Component(sighin, "Signin Module", "Авторизует/аутентифицирует пользователя")
+    Component(sighup, "Signup Module", "Регистрирует пользователя")
+    Component(auth_repository, "Auth Repository", "Слой взаимодействия с БД")
+    Rel(auth_controller, sighin, "Использует")
+    Rel(auth_controller, sighup, "Использует")
+    Rel(sighin, auth_repository, "Использует")
+    Rel(sighup, auth_repository, "Использует")
+}
+
+Rel(api, auth_controller, "Использует", "JSON/HTTPS")
+Rel(auth_repository, common_db, "Читает из/ записывает в [SQL]")
+@enduml

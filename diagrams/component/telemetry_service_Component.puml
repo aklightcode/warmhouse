@@ -1,0 +1,23 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+' uncomment the following line and comment the first to use locally
+' !include C4_Component.puml
+
+title Компонентная диаграмма для "Telemetry Service"
+Container(api, "Api Gateway", "Оркестратор для распределения запросов по доменам")
+ContainerDb(common_db, "Common Database", "PostgreSQL", "Хранит данные сервисов (данные пользователя, дома, состояния устройств, телеметрию)", $tags = "storage")
+
+Container_Boundary(lighting, "Telemetry Service") {
+    Component(telemetry_controller, "Telemetry API Controller", "Предоставляет REST API для обработки данных датчиков отопления и освещения")
+    Component(lighting_monitoring, "Lighting Data Monitor", "Обрабатывает данные датчиков освещения")
+    Component(temperature_monitoring, "Temperature Data Monitor", "Обрабатывает данные датчиков отопления")
+    Component(telemetry_repository, "Telemetry Repository", "Слой взаимодействия с БД")
+    Rel(telemetry_controller, temperature_monitoring, "Использует")
+    Rel(telemetry_controller, lighting_monitoring, "Использует")
+    Rel(temperature_monitoring, telemetry_repository, "Использует")
+    Rel(lighting_monitoring, telemetry_repository, "Использует")
+}
+
+Rel(api, telemetry_controller, "Использует", "JSON/HTTPS")
+Rel(telemetry_repository, common_db, "Читает из/ записывает в [SQL]")
+@enduml
