@@ -1,0 +1,105 @@
+@startuml
+
+' Сущности
+entity "User" as user {
+  *id: uuid <<PK>>
+  --
+  *email: varchar
+  *password_hash: varchar
+  name: varchar
+  phone: varchar
+  created_at: timestamp
+}
+
+entity "House" as house {
+  *id: uuid <<PK>>
+  --
+  *user_id: uuid <<FK>>
+  *address: varchar
+  area: decimal
+  timezone: varchar
+}
+
+entity "Device" as device {
+  *id: uuid <<PK>>
+  --
+  *house_id: uuid <<FK>>
+  *device_type: enum('light','thermostat','gate','camera')
+  *serial_number: varchar
+  name: varchar
+  status: boolean
+  installed_at: timestamp
+}
+
+entity "LightingDevice" as lighting {
+  *device_id: uuid <<PK>> <<FK>>
+  --
+  brightness: smallint
+  color_temp: smallint
+  power_usage: decimal
+}
+
+entity "HeatingDevice" as heating {
+  *device_id: uuid <<PK>> <<FK>>
+  --
+  target_temp: decimal
+  current_temp: decimal
+  mode: enum('auto','manual','off')
+}
+
+entity "GateDevice" as gate {
+  *device_id: uuid <<PK>> <<FK>>
+  --
+  gate_type: enum('sliding','swing','overhead')
+  is_open: boolean
+  motor_status: enum('idle','opening','closing')
+}
+
+entity "CameraDevice" as camera {
+  *device_id: uuid <<PK>> <<FK>>
+  --
+  resolution: varchar
+  is_recording: boolean
+  motion_detection: boolean
+}
+
+entity "LightingTelemetry" as l_telemetry {
+  *id: uuid <<PK>>
+  --
+  *device_id: uuid <<FK>>
+  brightness: smallint
+  power_usage: decimal
+  *recorded_at: timestamp
+}
+
+entity "HeatingTelemetry" as h_telemetry {
+  *id: uuid <<PK>>
+  --
+  *device_id: uuid <<FK>>
+  current_temp: decimal
+  target_temp: decimal
+  valve_position: smallint
+  *recorded_at: timestamp
+}
+
+' Связи
+user ||--o{ house : "владеет"
+house ||--o{ device : "содержит"
+
+device ||--|| lighting : "является\nосвещением"
+device ||--|| heating : "является\nотоплением"
+device ||--|| gate : "является\nворотами"
+device ||--|| camera : "является\nкамерой"
+
+lighting ||--o{ l_telemetry : "генерирует"
+heating ||--o{ h_telemetry : "генерирует"
+
+' Нотации
+note right of device
+  **Устройства**:
+  - 4 типа: свет, отопление, ворота, камеры
+  - Общие атрибуты в основной таблице
+  - Статус (вкл/выкл) для всех устройств
+end note
+
+@enduml
