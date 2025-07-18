@@ -1,0 +1,172 @@
+openapi: 3.0.3
+info:
+  title: Telemetry Service API
+  version: 1.0.0
+  description: Сервис сбора и обработки телеметрии устройств
+servers:
+  - url: https://api.smarthouse.com/v1/
+tags:
+  - name: Lighting
+    description: Телеметрия осветительных устройств
+  - name: Heating
+    description: Телеметрия систем отопления
+
+paths:
+  /telemetry/lighting:
+    post:
+      tags: [Lighting]
+      summary: Отправить данные телеметрии освещения
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LightingTelemetryData'
+            example:
+              device_id: "550e8400-e29b-41d4-a716-446655440000"
+              brightness: 75
+              power_usage: 15.2
+      responses:
+        '201':
+          description: Данные успешно сохранены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryResponse'
+              example:
+                status: "success"
+                record_id: "a1b2c3d4-e5f6-7890-g1h2-i3j4k5l6m7n8"
+        '400':
+          description: Неверные данные телеметрии
+
+    get:
+      tags: [Lighting]
+      summary: Получить телеметрию освещения
+      parameters:
+        - name: device_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: hours
+          in: query
+          schema:
+            type: integer
+            default: 24
+      responses:
+        '200':
+          description: Список записей телеметрии
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LightingTelemetryRecord'
+              example:
+                - id: "b2c3d4e5-f6g7-8901-h2i3-j4k5l6m7n8o9"
+                  device_id: "550e8400-e29b-41d4-a716-446655440000"
+                  brightness: 80
+                  power_usage: 16.5
+                  recorded_at: "2023-11-15T14:30:00Z"
+
+  /telemetry/heating:
+    post:
+      tags: [Heating]
+      summary: Отправить данные телеметрии отопления
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HeatingTelemetryData'
+            example:
+              device_id: "660e8400-e29b-41d4-a716-446655440000"
+              current_temp: 22.5
+              target_temp: 23.0
+              valve_position: 80
+      responses:
+        '201':
+          description: Данные успешно сохранены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryResponse'
+        '400':
+          description: Неверные данные телеметрии
+
+    get:
+      tags: [Heating]
+      summary: Получить телеметрию отопления
+      parameters:
+        - name: device_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: hours
+          in: query
+          schema:
+            type: integer
+            default: 24
+      responses:
+        '200':
+          description: Список записей телеметрии
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HeatingTelemetryRecord'
+              example:
+                - id: "c3d4e5f6-g7h8-9012-i3j4-k5l6m7n8o9p0"
+                  device_id: "660e8400-e29b-41d4-a716-446655440000"
+                  current_temp: 22.3
+                  target_temp: 23.0
+                  valve_position: 75
+                  recorded_at: "2023-11-15T14:30:00Z"
+
+components:
+  schemas:
+    LightingTelemetryData:
+      type: object
+      required: [device_id, brightness]
+      properties:
+        device_id: { type: string, format: uuid }
+        brightness: { type: integer, minimum: 0, maximum: 100 }
+        power_usage: { type: number, format: float }
+
+    HeatingTelemetryData:
+      type: object
+      required: [device_id, current_temp]
+      properties:
+        device_id: { type: string, format: uuid }
+        current_temp: { type: number, format: float }
+        target_temp: { type: number, format: float }
+        valve_position: { type: integer, minimum: 0, maximum: 100 }
+
+    LightingTelemetryRecord:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        device_id: { type: string, format: uuid }
+        brightness: { type: integer }
+        power_usage: { type: number }
+        recorded_at: { type: string, format: date-time }
+
+    HeatingTelemetryRecord:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        device_id: { type: string, format: uuid }
+        current_temp: { type: number }
+        target_temp: { type: number }
+        valve_position: { type: integer }
+        recorded_at: { type: string, format: date-time }
+
+    TelemetryResponse:
+      type: object
+      properties:
+        status: { type: string }
+        record_id: { type: string, format: uuid }

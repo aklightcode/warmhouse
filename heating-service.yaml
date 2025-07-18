@@ -1,0 +1,151 @@
+openapi: 3.0.3
+info:
+  title: Heating Service API
+  version: 1.0.0
+  description: Управление устройствами отопления
+servers:
+  - url: https://api.smarthouse.com/v1/
+tags:
+  - name: Devices
+    description: Управление термостатами
+
+paths:
+  /heating/devices:
+    get:
+      tags: [Devices]
+      summary: Получить список термостатов
+      parameters:
+        - name: house_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID дома для фильтрации
+      responses:
+        '200':
+          description: Список устройств отопления
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HeatingDeviceFull'
+              example:
+                - device_id: "550e8400-e29b-41d4-a716-446655440000"
+                  house_id: "110e8400-e29b-41d4-a716-446655440001"
+                  serial_number: "TH-001"
+                  name: "Главный термостат"
+                  status: true
+                  target_temp: 22.5
+                  current_temp: 21.8
+                  mode: "auto"
+        '404':
+          description: Дом не найден
+
+    post:
+      tags: [Devices]
+      summary: Добавить новый термостат
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HeatingDeviceCreate'
+            example:
+              house_id: "110e8400-e29b-41d4-a716-446655440001"
+              serial_number: "TH-002"
+              name: "Дополнительный термостат"
+              initial_temp: 21.0
+      responses:
+        '201':
+          description: Устройство создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeatingDeviceFull'
+        '400':
+          description: Неверные параметры устройства
+
+  /heating/devices/{device_id}:
+    get:
+      tags: [Devices]
+      summary: Получить информацию о термостате
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Информация об устройстве
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeatingDeviceFull'
+        '404':
+          description: Устройство не найдено
+
+    patch:
+      tags: [Devices]
+      summary: Обновить параметры термостата
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HeatingDeviceUpdate'
+            example:
+              target_temp: 23.0
+              mode: "manual"
+              status: true
+      responses:
+        '200':
+          description: Параметры обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HeatingDeviceFull'
+        '404':
+          description: Устройство не найдено
+
+components:
+  schemas:
+    HeatingDeviceFull:
+      type: object
+      properties:
+        device_id: { type: string, format: uuid }
+        house_id: { type: string, format: uuid }
+        serial_number: { type: string }
+        name: { type: string }
+        status: { type: boolean }
+        target_temp: { type: number, format: float }
+        current_temp: { type: number, format: float }
+        mode: { type: string, enum: [auto, manual, off] }
+        installed_at: { type: string, format: date-time }
+
+    HeatingDeviceCreate:
+      type: object
+      required: [house_id, serial_number]
+      properties:
+        house_id: { type: string, format: uuid }
+        serial_number: { type: string }
+        name: { type: string }
+        initial_temp: { type: number, default: 21.0 }
+
+    HeatingDeviceUpdate:
+      type: object
+      properties:
+        target_temp: { type: number }
+        mode: { type: string, enum: [auto, manual, off] }
+        status: { type: boolean }
+        name: { type: string }

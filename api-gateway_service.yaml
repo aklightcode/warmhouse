@@ -1,0 +1,148 @@
+openapi: 3.0.3
+info:
+  title: API Gateway
+  version: 1.0.0
+  description: Главный шлюз для всех сервисов умного дома
+servers:
+  - url: https://api.smarthouse.com/v1/
+tags:
+  - name: Routing
+    description: Маршрутизация запросов к сервисам
+  - name: Auth
+    description: Аутентификация и авторизация
+
+paths:
+  /api/{service}/v1/{path}:
+    parameters:
+      - name: service
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [auth, heating, lighting, gates, surveillance, telemetry]
+        description: Наименование целевого сервиса
+      - name: path
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Путь в целевом сервисе
+    get:
+      tags: [Routing]
+      summary: Прокси GET запросов
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Ответ от сервиса
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Не авторизован
+        '404':
+          description: Сервис не найден
+    post:
+      tags: [Routing]
+      summary: Прокси POST запросов
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Ответ от сервиса
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Не авторизован
+
+  /auth/validate:
+    post:
+      tags: [Auth]
+      summary: Валидация токена
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenValidation'
+      responses:
+        '200':
+          description: Токен валиден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenValidationResult'
+        '401':
+          description: Невалидный токен
+
+  /health:
+    get:
+      tags: [Routing]
+      summary: Проверка здоровья сервисов
+      responses:
+        '200':
+          description: Статус сервисов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+              example:
+                services:
+                  auth: "healthy"
+                  heating: "healthy"
+                  lighting: "healthy"
+                  gates: "healthy"
+                  surveillance: "healthy"
+                  telemetry: "healthy"
+                gateway: "healthy"
+
+components:
+  schemas:
+    TokenValidation:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string }
+
+    TokenValidationResult:
+      type: object
+      properties:
+        valid: { type: boolean }
+        user_id: { type: string, format: uuid }
+        expires_at: { type: string, format: date-time }
+
+    HealthStatus:
+      type: object
+      properties:
+        services:
+          type: object
+          properties:
+            auth: { type: string }
+            heating: { type: string }
+            lighting: { type: string }
+            gates: { type: string }
+            surveillance: { type: string }
+            telemetry: { type: string }
+        gateway: { type: string }
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    ServicePath:
+      name: path
+      in: path
+      required: true
+      schema:
+        type: string

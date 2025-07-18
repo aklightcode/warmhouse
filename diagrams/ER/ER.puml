@@ -8,6 +8,7 @@ entity "User" as user {
   *password_hash: varchar
   name: varchar
   phone: varchar
+  refresh_token: varchar
   created_at: timestamp
 }
 

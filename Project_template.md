@@ -105,11 +105,20 @@
 
 ### 1. Тип API
 
-Укажите, какой тип API вы будете использовать для взаимодействия микросервисов. Объясните своё решение.
+Используется REST API, так как для текущей задачи достаточно синхронного взаимодействия и реализация REST API относительно проще в плане интеграции и поддержки.
 
 ### 2. Документация API
 
 Здесь приложите ссылки на документацию API для микросервисов, которые вы спроектировали в первой части проектной работы. Для документирования используйте Swagger/OpenAPI или AsyncAPI.
+
+[Auth service](./auth-service.yaml)
+[Lighing service](./lighting-service.yaml)
+[Heating service](./heating-service.yaml)
+[Gate service](./gate-service.yaml)
+[Surveillance service](./surveillance-service.yaml)
+[Api gateway service](./api-gateway-service.yaml)
+[Telemetry service](./telemetry-service.yaml)
+
 
 # Задание 5. Работа с docker и docker-compose
 

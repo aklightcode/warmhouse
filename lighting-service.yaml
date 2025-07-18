@@ -1,0 +1,257 @@
+openapi: 3.0.3
+info:
+  title: Lighting Service API
+  version: 1.0.0
+  description: Управление осветительными устройствами
+servers:
+  - url: https://api.smarthouse.com/v1/
+tags:
+  - name: Devices
+    description: Управление отдельными устройствами
+  - name: Groups
+    description: Работа с группами устройств
+
+paths:
+  /lighting/devices:
+    get:
+      tags: [Devices]
+      summary: Получить список всех осветительных устройств
+      responses:
+        '200':
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LightDevice'
+              examples:
+                activeDevices:
+                  value:
+                    - id: "light1"
+                      name: "Кухонный свет"
+                      status: "on"
+                      brightness: 80
+                      colorTemp: 4000
+                    - id: "light2"
+                      name: "Гостиная"
+                      status: "off"
+                      brightness: 0
+                      colorTemp: 2700
+        '500':
+          description: Ошибка сервера
+          content:
+            application/json:
+              example:
+                error: "Internal server error"
+
+    post:
+      tags: [Devices]
+      summary: Добавить новое устройство
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewDevice'
+            example:
+              name: "Новый светильник"
+              type: "led"
+              initialBrightness: 50
+      responses:
+        '201':
+          description: Устройство успешно добавлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LightDevice'
+              example:
+                id: "light3"
+                name: "Новый светильник"
+                status: "off"
+                brightness: 50
+                colorTemp: 2700
+        '400':
+          description: Неверные параметры запроса
+        '401':
+          description: Не авторизован
+
+  /lighting/devices/{deviceId}:
+    get:
+      tags: [Devices]
+      summary: Получить информацию об устройстве
+      parameters:
+        - $ref: '#/components/parameters/deviceId'
+      responses:
+        '200':
+          description: Информация об устройстве
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LightDevice'
+              example:
+                id: "light1"
+                name: "Кухонный свет"
+                status: "on"
+                brightness: 80
+                colorTemp: 4000
+        '404':
+          description: Устройство не найдено
+          content:
+            application/json:
+              example:
+                error: "Device not found"
+        '500':
+          description: Ошибка сервера
+
+    put:
+      tags: [Devices]
+      summary: Обновить параметры устройства
+      parameters:
+        - $ref: '#/components/parameters/deviceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceUpdate'
+            example:
+              brightness: 75
+              status: "on"
+              colorTemp: 3500
+      responses:
+        '200':
+          description: Параметры успешно обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LightDevice'
+        '400':
+          description: Неверные параметры обновления
+        '404':
+          description: Устройство не найдено
+
+  /lighting/groups:
+    post:
+      tags: [Groups]
+      summary: Создать группу устройств
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewGroup'
+            example:
+              name: "Весь дом"
+              deviceIds: ["light1", "light2"]
+      responses:
+        '201':
+          description: Группа успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceGroup'
+              example:
+                groupId: "group1"
+                name: "Весь дом"
+                devices:
+                  - "light1"
+                  - "light2"
+                status: "active"
+        '400':
+          description: Неверные параметры группы
+        '403':
+          description: Нет доступа к устройствам
+
+  /lighting/groups/{groupId}/control:
+    post:
+      tags: [Groups]
+      summary: Управление группой устройств
+      parameters:
+        - $ref: '#/components/parameters/groupId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupControl'
+            example:
+              action: "turn_on"
+              brightness: 70
+      responses:
+        '200':
+          description: Команда выполнена
+          content:
+            application/json:
+              example:
+                status: "success"
+                affectedDevices: 2
+        '404':
+          description: Группа не найдена
+        '500':
+          description: Ошибка выполнения команды
+
+components:
+  schemas:
+    LightDevice:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        status: { type: string, enum: [on, off] }
+        brightness: { type: integer, minimum: 0, maximum: 100 }
+        colorTemp: { type: integer, minimum: 2000, maximum: 6500 }
+
+    NewDevice:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        type: { type: string }
+        initialBrightness: { type: integer, default: 50 }
+
+    DeviceUpdate:
+      type: object
+      properties:
+        status: { type: string, enum: [on, off] }
+        brightness: { type: integer, minimum: 0, maximum: 100 }
+        colorTemp: { type: integer, minimum: 2000, maximum: 6500 }
+
+    NewGroup:
+      type: object
+      required: [name, deviceIds]
+      properties:
+        name: { type: string }
+        deviceIds:
+          type: array
+          items: { type: string }
+
+    DeviceGroup:
+      type: object
+      properties:
+        groupId: { type: string }
+        name: { type: string }
+        devices:
+          type: array
+          items: { type: string }
+        status: { type: string }
+
+    GroupControl:
+      type: object
+      properties:
+        action: { type: string, enum: [turn_on, turn_off, toggle] }
+        brightness: { type: integer }
+
+  parameters:
+    deviceId:
+      name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+    groupId:
+      name: groupId
+      in: path
+      required: true
+      schema:
+        type: string
