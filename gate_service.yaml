@@ -1,0 +1,151 @@
+openapi: 3.0.3
+info:
+  title: Gate Service API
+  version: 1.0.0
+  description: Управление автоматическими воротами
+servers:
+  - url: https://api.smarthouse.com/v1/
+tags:
+  - name: Devices
+    description: Управление устройствами ворот
+
+paths:
+  /gates/devices:
+    get:
+      tags: [Devices]
+      summary: Получить список ворот
+      parameters:
+        - name: house_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID дома для фильтрации
+      responses:
+        '200':
+          description: Список устройств ворот
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GateDeviceFull'
+              example:
+                - device_id: "660e8400-e29b-41d4-a716-446655440000"
+                  house_id: "110e8400-e29b-41d4-a716-446655440001"
+                  serial_number: "GT-001"
+                  name: "Главные ворота"
+                  status: true
+                  gate_type: "sliding"
+                  is_open: false
+                  motor_status: "idle"
+        '404':
+          description: Дом не найден
+
+    post:
+      tags: [Devices]
+      summary: Добавить новые ворота
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GateDeviceCreate'
+            example:
+              house_id: "110e8400-e29b-41d4-a716-446655440001"
+              serial_number: "GT-002"
+              name: "Задние ворота"
+              gate_type: "swing"
+      responses:
+        '201':
+          description: Устройство создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GateDeviceFull'
+        '400':
+          description: Неверные параметры устройства
+
+  /gates/devices/{device_id}:
+    get:
+      tags: [Devices]
+      summary: Получить информацию о воротах
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Информация об устройстве
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GateDeviceFull'
+        '404':
+          description: Устройство не найдено
+
+    patch:
+      tags: [Devices]
+      summary: Управление воротами
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GateDeviceControl'
+            example:
+              action: "open"
+      responses:
+        '200':
+          description: Команда выполнена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GateDeviceFull'
+        '400':
+          description: Неверная команда
+        '404':
+          description: Устройство не найдено
+
+components:
+  schemas:
+    GateDeviceFull:
+      type: object
+      properties:
+        device_id: { type: string, format: uuid }
+        house_id: { type: string, format: uuid }
+        serial_number: { type: string }
+        name: { type: string }
+        status: { type: boolean }
+        gate_type: { type: string, enum: [sliding, swing, overhead] }
+        is_open: { type: boolean }
+        motor_status: { type: string, enum: [idle, opening, closing] }
+        installed_at: { type: string, format: date-time }
+
+    GateDeviceCreate:
+      type: object
+      required: [house_id, serial_number, gate_type]
+      properties:
+        house_id: { type: string, format: uuid }
+        serial_number: { type: string }
+        name: { type: string }
+        gate_type: { type: string, enum: [sliding, swing, overhead] }
+
+    GateDeviceControl:
+      type: object
+      required: [action]
+      properties:
+        action: { type: string, enum: [open, close, stop] }
+        name: { type: string }
+        status: { type: boolean }

@@ -1,0 +1,20 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+' uncomment the following line and comment the first to use locally
+' !include C4_Component.puml
+
+title Компонентная диаграмма для "Lighting Service"
+Container(api, "Api Gateway", "Оркестратор для распределения запросов по доменам")
+ContainerDb(common_db, "Common Database", "PostgreSQL", "Хранит данные сервисов (данные пользователя, дома, состояния устройств, телеметрию)", $tags = "storage")
+
+Container_Boundary(lighting, "Lighting Service") {
+    Component(lighting_controller, "Lighting API Controller", "Предоставляет REST API для управления осветительными приборами")
+    Component(lighting_management, "Lighting Manager", "Управляет осветительными приборами в доме")
+    Component(lighting_repository, "Lighting Repository", "Слой взаимодействия с БД")
+    Rel(lighting_controller, lighting_management, "Использует")
+    Rel(lighting_management, lighting_repository, "Использует")
+}
+
+Rel(api, lighting_controller, "Использует", "JSON/HTTPS")
+Rel(lighting_repository, common_db, "Читает из/ записывает в [SQL]")
+@enduml

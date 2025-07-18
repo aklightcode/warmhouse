@@ -1,0 +1,152 @@
+openapi: 3.0.3
+info:
+  title: Surveillance Service API
+  version: 1.0.0
+  description: Управление камерами видеонаблюдения
+servers:
+  - url: https://api.smarthouse.com/v1/
+tags:
+  - name: Cameras
+    description: Управление камерами наблюдения
+
+paths:
+  /surveillance/cameras:
+    get:
+      tags: [Cameras]
+      summary: Получить список камер
+      parameters:
+        - name: house_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID дома для фильтрации
+      responses:
+        '200':
+          description: Список камер наблюдения
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CameraDeviceFull'
+              example:
+                - device_id: "770e8400-e29b-41d4-a716-446655440000"
+                  house_id: "110e8400-e29b-41d4-a716-446655440001"
+                  serial_number: "CAM-001"
+                  name: "Камера у входа"
+                  status: true
+                  resolution: "1920x1080"
+                  is_recording: false
+                  motion_detection: true
+        '404':
+          description: Дом не найден
+
+    post:
+      tags: [Cameras]
+      summary: Добавить новую камеру
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CameraDeviceCreate'
+            example:
+              house_id: "110e8400-e29b-41d4-a716-446655440001"
+              serial_number: "CAM-002"
+              name: "Камера заднего двора"
+              resolution: "1280x720"
+      responses:
+        '201':
+          description: Камера добавлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CameraDeviceFull'
+        '400':
+          description: Неверные параметры камеры
+
+  /surveillance/cameras/{device_id}:
+    get:
+      tags: [Cameras]
+      summary: Получить информацию о камере
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Информация о камере
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CameraDeviceFull'
+        '404':
+          description: Камера не найдена
+
+    patch:
+      tags: [Cameras]
+      summary: Управление камерой
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CameraDeviceControl'
+            example:
+              action: "start_recording"
+              motion_detection: true
+      responses:
+        '200':
+          description: Состояние камеры обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CameraDeviceFull'
+        '400':
+          description: Неверная команда
+        '404':
+          description: Камера не найдена
+
+components:
+  schemas:
+    CameraDeviceFull:
+      type: object
+      properties:
+        device_id: { type: string, format: uuid }
+        house_id: { type: string, format: uuid }
+        serial_number: { type: string }
+        name: { type: string }
+        status: { type: boolean }
+        resolution: { type: string }
+        is_recording: { type: boolean }
+        motion_detection: { type: boolean }
+        installed_at: { type: string, format: date-time }
+
+    CameraDeviceCreate:
+      type: object
+      required: [house_id, serial_number, resolution]
+      properties:
+        house_id: { type: string, format: uuid }
+        serial_number: { type: string }
+        name: { type: string }
+        resolution: { type: string }
+
+    CameraDeviceControl:
+      type: object
+      properties:
+        action: { type: string, enum: [start_recording, stop_recording, restart] }
+        motion_detection: { type: boolean }
+        name: { type: string }
+        status: { type: boolean }
